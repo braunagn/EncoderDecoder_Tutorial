@@ -1,4 +1,5 @@
-from . import config
+import config
+import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
@@ -13,7 +14,7 @@ class LanguageDataset(Dataset):
 
     def __getitem__(self, index):
         if self.pad_token_id is not None:
-            x1pad = self.X1[index]==pad_token_id
+            x1pad = self.X1[index]==self.pad_token_id
             return self.X1[index], self.X2[index], self.y[index], x1pad[None,:]
         return self.X1[index], self.X2[index], self.y[index]
 
