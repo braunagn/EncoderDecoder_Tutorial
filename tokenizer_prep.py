@@ -1,6 +1,6 @@
-from . import config
+import config
 from collections import Counter
-
+import pandas as pd
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
@@ -22,13 +22,13 @@ def train_tokenizer(data):
         pad_id=list(config.SPECIAL_TOKENS.keys()).index("PAD_TOKEN"),
     )
     tokenizer.enable_truncation(
-        max_length=T,
+        max_length=config.T,
         direction="right",
     )
     trainer = BpeTrainer(
         vocab_size=config.VOCAB_SIZE + len(config.SPECIAL_TOKENS.items()),
         min_frequency=2,
-        special_tokens=config.SPECIAL_TOKENS.items(),
+        special_tokens=list(config.SPECIAL_TOKENS.values()),
         continuing_subword_prefix="##",
         end_of_word_suffix="ġ",
         max_token_length=None,
@@ -38,29 +38,26 @@ def train_tokenizer(data):
     return tokenizer
 
 
-def encode_sentences(data):
-    # data: Pd.Series with one language set of sentences 
-    return tokenizer.encode_batch(data.values)
-
-
-def sequence_length(s):
+def sequence_length(s, ignore_token_ids):
     # determine sequence length (only counts ids not in `ignore`)
-    ignore = [
-        config.SPECIAL_TOKENS["BOS_TOKEN"],
-        config.SPECIAL_TOKENS["EOS_TOKEN"],
-        config.SPECIAL_TOKENS["PAD_TOKEN"],
-    ]
-    return sum([v for k,v in Counter(s).items() if k not in ignore])
+    return sum([v for k, v in Counter(s).items() if k not in ignore_token_ids])
 
 
-def group_sentences(x1, x2):
-    """ to assist with training, group sentences based upon length """
+def group_sentences(x1, x2, ignore_token_ids):
+    """to assist with training, group sentences based upon length"""
     # x1: language 1 from tokenizer.encode_batch(); to be translated from
     # x2: language 2 from tokenizer.encode_batch(); to be translated into
 
     # shuffle data and group sequences together based upon length
-    x1_len = [sequence_length(x1.ids) for x in x1]
-    groups = reversed([tmp for _, tmp in pd.DataFrame(x1_len, columns=["x1_len"]).sample(frac=1.).groupby("x1_len")])
+    x1_len = [sequence_length(x.ids, ignore_token_ids) for x in x1]
+    groups = reversed(
+        [
+            tmp
+            for _, tmp in pd.DataFrame(x1_len, columns=["x1_len"])
+            .sample(frac=1.0)
+            .groupby("x1_len")
+        ]
+    )
     grouped_index = pd.concat(groups).index
-    sorted_data = [(x1_encoded[i].ids, x2_encoded[i].ids) for i in grouped_index]
+    sorted_data = [(x1[i].ids, x2[i].ids) for i in grouped_index]
     return sorted_data
