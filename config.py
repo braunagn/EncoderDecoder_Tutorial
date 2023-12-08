@@ -7,15 +7,23 @@ import torch
 ####################
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# architecture
 C = 512
 T = 30  # max context length; informed via quick analysis
 N_LAYERS = 6
 NUM_HEADS = 8
 HEAD_SIZE = 64  # C // NUM_HEADS = 512 // 8
 
+# training
 DROPOUT = 0.1
 BATCH_SIZE = 8
 BATCH_SIZE_VAL = 50
+EPOCS = 15
+INITIAL_LR = 1e-7
+MAX_LR = 1e-5
+FINAL_LR = 1e-6
+WARM_UP_STEPS = 1000
 
 
 ###########################
