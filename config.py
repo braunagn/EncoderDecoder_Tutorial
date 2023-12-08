@@ -18,12 +18,14 @@ HEAD_SIZE = 64  # C // NUM_HEADS = 512 // 8
 # training
 DROPOUT = 0.1
 BATCH_SIZE = 8
-BATCH_SIZE_VAL = 50
-EPOCS = 15
+BATCH_SIZE_EVAL = 50 # num batches for eval of train and test loss
+EPOCHS = 10
 INITIAL_LR = 1e-7
 MAX_LR = 1e-5
 FINAL_LR = 1e-6
-WARM_UP_STEPS = 1000
+WARMUP_STEPS = 5000
+PRINT_TIMES_PER_EPOCH = 50
+SAVE_PATH_MODEL_OBJ = None # "/path/to/model_obj"
 
 
 ###########################

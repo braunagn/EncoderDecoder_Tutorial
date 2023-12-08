@@ -9,7 +9,7 @@ class LanguageDataset(Dataset):
         super(LanguageDataset).__init__()
         self.X1 = torch.tensor(X1, device=config.DEVICE)  # NL sequences
         self.X2 = torch.tensor(X2, device=config.DEVICE)  # EN sequences
-        self.y = torch.tensor(y, dtype=torch.float32, device=config.DEVICE)  # EN shifted
+        self.y = torch.tensor(y, dtype=torch.long, device=config.DEVICE)  # EN shifted
         self.pad_token_id = pad_token_id
 
     def __getitem__(self, index):
