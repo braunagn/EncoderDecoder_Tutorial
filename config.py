@@ -19,7 +19,7 @@ HEAD_SIZE = 64  # C // NUM_HEADS = 512 // 8
 DROPOUT = 0.1
 BATCH_SIZE = 8
 BATCH_SIZE_EVAL = 50 # num batches for eval of train and test loss
-EPOCHS = 10
+EPOCHS = 20
 INITIAL_LR = 1e-7
 MAX_LR = 1e-5
 FINAL_LR = 1e-6
