@@ -25,7 +25,7 @@ MAX_LR = 1e-5
 FINAL_LR = 1e-6
 WARMUP_STEPS = 5000
 PRINT_TIMES_PER_EPOCH = 50
-SAVE_PATH_MODEL_OBJ = "/content/EncoderDecoder_Tutorial"  # /path/to/model_obj set to None for no checkpoints
+SAVE_PATH_MODEL_OBJ = "/content/EncoderDecoder_Tutorial.model_object"  # /path/to/model_obj set to None for no checkpoints
 
 
 ###########################
