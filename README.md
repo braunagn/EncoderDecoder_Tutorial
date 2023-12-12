@@ -30,7 +30,8 @@ Credit goes to [Tatoeba.org](https://tatoeba.org/en/downloads) for the Dutch <->
 ## Limitations
 The primary purpose of this repo is educational and as such has the following limitations:
 - The model itself it trained on a very small dataset (~140K sentence pairs) whereas modern LLMs are trained on +trillion tokens.  The performance of the model reflects this.
-- Training epochs were limited to 20 due to cost of training via Google Colab (~$20USD) but additional training could be performed 
+- Training data sentence pairs are fairly short in length (mean of ~30 characters each with a long right-skewed tail) which likely limits the model's ability to translate long sentences.
+- Training epochs were limited to 20 due to cost of training via Google Colab (~$20USD) but additional training could be performed.
 
 ## Python Dependencies
 *Alphabetical order, except primary libraries which are listed first in **bold**.*
