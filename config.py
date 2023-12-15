@@ -3,6 +3,13 @@
 import torch
 
 ####################
+### directories ####
+####################
+REPO_DIR = "C:/Users/braun/OneDrive/Desktop/NL2EN"
+SAVE_PATH_MODEL_OBJ = f"{REPO_DIR}/model_object"  # set to None for no checkpoints
+
+
+####################
 ### model params ###
 ####################
 
@@ -16,6 +23,7 @@ NUM_HEADS = 8
 HEAD_SIZE = 64  # C // NUM_HEADS = 512 // 8
 
 # training
+TEST_SPLIT = 0.15  # % of data that is test
 DROPOUT = 0.1
 BATCH_SIZE = 8
 BATCH_SIZE_EVAL = 50 # num batches for eval of train and test loss
@@ -25,7 +33,6 @@ MAX_LR = 1e-5
 FINAL_LR = 1e-6
 WARMUP_STEPS = 5000
 PRINT_TIMES_PER_EPOCH = 50
-SAVE_PATH_MODEL_OBJ = "/content/EncoderDecoder_Tutorial.model_object"  # /path/to/model_obj set to None for no checkpoints
 
 
 ###########################
