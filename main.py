@@ -65,8 +65,13 @@ test_dl = DataLoader(
     drop_last=False,
 )
 
-# model, loss_fn, optimizer, and lr_schedule setup
-model = model.LanguageModel(tokenizer).to(config.DEVICE)
+# model
+if config.LOAD_PATH_TRAINED_MODEL_OBJ is not None:
+    # reload an exiting model to continue training
+    model = torch.load(config.LOAD_PATH_TRAINED_MODEL_OBJ, map_location=config.DEVICE)
+else:
+    # or initialize a new model
+    model = model.LanguageModel(tokenizer).to(config.DEVICE)
 
 # loss function
 loss_fn = nn.CrossEntropyLoss(ignore_index=pad_token_id, label_smoothing=0.1)  # don't compute loss for pad tokens
@@ -139,7 +144,7 @@ for e in range(config.EPOCHS):
             if config.SAVE_PATH_MODEL_OBJ is not None:
                 # given a small model size, it's a good idea to save frequently in the event training timesouts (which
                 # is often the case on free services like google colab).  If this occurs, simply reload the model
-                # and start the training again.  Annoying but at least you're not starting from an untrained model.
+                # and start the training again (see config.LOAD_PATH_TRAINED_MODEL_OBJ).
                 torch.save(model, config.SAVE_PATH_MODEL_OBJ)
 
             lr = scheduler.get_last_lr()[0]

@@ -7,6 +7,8 @@ import torch
 ####################
 REPO_DIR = "C:/Users/braun/OneDrive/Desktop/NL2EN"
 SAVE_PATH_MODEL_OBJ = f"{REPO_DIR}/model_object"  # set to None for no checkpoints
+# to continue training a model that has already been initialized:
+LOAD_PATH_TRAINED_MODEL_OBJ = "C:/Users/braun/OneDrive/Desktop/semi_trained_model_object" # set to None if not loading from storage
 
 
 ####################
