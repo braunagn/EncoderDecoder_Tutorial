@@ -68,6 +68,7 @@ test_dl = DataLoader(
 # model
 if config.LOAD_PATH_TRAINED_MODEL_OBJ is not None:
     # reload an exiting model to continue training
+    print(f"loading model from {config.LOAD_PATH_TRAINED_MODEL_OBJ}...")
     model = torch.load(config.LOAD_PATH_TRAINED_MODEL_OBJ, map_location=config.DEVICE)
 else:
     # or initialize a new model
