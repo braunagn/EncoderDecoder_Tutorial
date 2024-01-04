@@ -61,6 +61,7 @@ def make_train_test_datasets(tokenizer, data):
         batch_size=config.BATCH_SIZE,
         shuffle=False,  # keep sequences of the same length together
         drop_last=False,
+        num_workers=0,
     )
     # for loss performance over train/test datasets (vs. batch being trained on)
     train_dl = DataLoader(
@@ -68,12 +69,14 @@ def make_train_test_datasets(tokenizer, data):
         batch_size=config.BATCH_SIZE_EVAL,
         shuffle=True,  # sample across the dataset, regardless of sequence len
         drop_last=False,
+        num_workers=0,
     )
     test_dl = DataLoader(
         test_data,
         batch_size=config.BATCH_SIZE_EVAL,
         shuffle=True,
         drop_last=False,
+        num_workers=0,
     )
 
     return training_dl, train_dl, test_dl
