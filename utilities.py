@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import OneCycleLR
 from sklearn.model_selection import train_test_split
+from torch.utils.data.distributed import DistributedSampler
 
 
 def read_in_rawdata_and_cleanup():
@@ -27,6 +28,7 @@ def make_train_test_datasets(tokenizer, data):
     """Encodes data with trained tokenizer and prepares
     pytorch Datasets.  Returns 3x Dataloaders (training, train, test)
     """
+    print("making train/test datasets...")
     nl_encoded = tokenizer.encode_batch(data.nl.values)
     en_encoded = tokenizer.encode_batch(data.en.values)
     # grouped by sentence/sequence length
@@ -56,30 +58,9 @@ def make_train_test_datasets(tokenizer, data):
     test_data = dataset.LanguageDataset(
         X1_test, X2_test, y_test, pad_token_id=pad_token_id
     )
-    training_dl = DataLoader(
-        train_data,
-        batch_size=config.BATCH_SIZE,
-        shuffle=False,  # keep sequences of the same length together
-        drop_last=False,
-        num_workers=0,
-    )
-    # for loss performance over train/test datasets (vs. batch being trained on)
-    train_dl = DataLoader(
-        train_data,
-        batch_size=config.BATCH_SIZE_EVAL,
-        shuffle=True,  # sample across the dataset, regardless of sequence len
-        drop_last=False,
-        num_workers=0,
-    )
-    test_dl = DataLoader(
-        test_data,
-        batch_size=config.BATCH_SIZE_EVAL,
-        shuffle=True,
-        drop_last=False,
-        num_workers=0,
-    )
 
-    return training_dl, train_dl, test_dl
+    return train_data, test_data
+
 
 def load_model(tokenizer=None):
     if config.LOAD_PATH_TRAINED_MODEL_OBJ is not None:

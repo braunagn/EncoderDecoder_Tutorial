@@ -1,21 +1,31 @@
 # tokenizer and model settings
-
+import os
 import torch
 
 ####################
 ### directories ####
 ####################
 REPO_DIR = "C:/Users/braun/OneDrive/Desktop/NL2EN"
-SAVE_PATH_MODEL_OBJ = f"{REPO_DIR}/model_object"  # set to None for no checkpoints
-# to continue training a model that has already been initialized:
-LOAD_PATH_TRAINED_MODEL_OBJ = "C:/Users/braun/OneDrive/Desktop/semi_trained_model_object" # set to None if not loading from storage
+if not os.path.exists(REPO_DIR):
+    REPO_DIR = "~/NL2EN"
 
+SAVE_PATH_MODEL_OBJ = "C:/Users/braun/OneDrive/Desktop"
+if not os.path.exists(SAVE_PATH_MODEL_OBJ):
+    SAVE_PATH_MODEL_OBJ = "."
+MODEL_OBJ_NAME = "model_object.cp"
+# to continue training an existing model checkpoint:
+LOADEXISTING_NAME = "model_object_semi_trained.cp"
+# LOADEXISTING_NAME = "model_object.cp"
+# LOADEXISTING_PATH = None
+LOADEXISTING_PATH = f"{SAVE_PATH_MODEL_OBJ}/{LOADEXISTING_NAME}"
 
 ####################
 ### model params ###
 ####################
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+MASTER_ADDR = "localhost"
+MASTER_PORT = "12355"
 
 # architecture
 C = 512
@@ -27,15 +37,14 @@ HEAD_SIZE = 64  # C // NUM_HEADS = 512 // 8
 # training
 TEST_SPLIT = 0.15  # % of data that is test
 DROPOUT = 0.1
-BATCH_SIZE = 8
-BATCH_SIZE_EVAL = 50 # num batches for eval of train and test loss
-EPOCHS = 20
+BATCH_SIZE = 1
+BATCH_SIZE_EVAL = 48 # num batches for eval of train and test loss
+EPOCHS = 100
 INITIAL_LR = 1e-7
 MAX_LR = 1e-5
 FINAL_LR = 1e-6
-WARMUP_STEPS = 5000
+WARMUP_STEPS = 2500
 PRINT_TIMES_PER_EPOCH = 50
-
 
 ###########################
 ### vocab and tokenizer ###

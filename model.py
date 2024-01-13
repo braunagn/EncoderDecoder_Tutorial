@@ -23,8 +23,11 @@ class EnP(nn.Module):
     def forward(self, x):
         # in (B,T/t) -> (B,T/t,C)
         _, t = x.shape
+        device = x.device.type
+        if device == "cuda":
+            device = x.device.index
         x1 = self.temb(x)
-        x2 = self.pemb(torch.arange(t, device=config.DEVICE))
+        x2 = self.pemb(torch.arange(t, device=device))
         return self.lnorm(self.dropout(x1 + x2))  # (B,T,C)
 
 
@@ -219,18 +222,14 @@ class Decoder(nn.Module):
 
 
 class LanguageModel(nn.Module):
-    """highest level class wrapper representing entire transformer model for training and inference
-    tokenizer: tokenizer object from tokenizer_prep.py
-    all other params come from config.py
+    """highest level class wrapper representing entire transformer model; params from config.py
 
     see here for visual of architecture layout:
     https://docs.google.com/presentation/d/1sRWV0hxIgL8ZNyrqV_jz7vX5l815RJI5l_KlXoVJHAQ/edit#slide=id.g29d8fe39d9a_0_0
     """
 
-    def __init__(self, tokenizer):
+    def __init__(self, vocab_len):
         super().__init__()
-
-        vocab_len = len(tokenizer.get_vocab())
 
         # architecture:
         self.encoder_embeddings = EnP(vocab_len, config.C, config.T, config.DROPOUT)
@@ -253,15 +252,6 @@ class LanguageModel(nn.Module):
         )
         self.linear = nn.Linear(config.C, vocab_len)
 
-        # for encoding/decoding during inference
-        self.token_to_id = tokenizer.token_to_id
-        self.id_to_token = tokenizer.id_to_token
-        self.encode_sentence = tokenizer.encode
-        self.decode_to_sentence = tokenizer.decode
-        self.BOS_TOKEN = config.SPECIAL_TOKENS["BOS_TOKEN"]
-        self.EOS_TOKEN = config.SPECIAL_TOKENS["EOS_TOKEN"]
-        self.PAD_TOKEN = config.SPECIAL_TOKENS["PAD_TOKEN"]
-
     def forward(self, x1, x2, x1padmask):
         # x1: sequence of NL to translate, x2: target (sequence of EN)
         # x1padmask: indicates where padding is within x1 (so it can be ignored)
@@ -271,43 +261,45 @@ class LanguageModel(nn.Module):
         x2 = self.decoder(x1, x1, x2)
         return self.linear(x2)  # no softmax (accounted for in loss:CrossEntropyLoss)
 
-    # helper functions for inference
-    def encoded_input_and_padmask(self, s):
-        s = self.BOS_TOKEN + s + self.EOS_TOKEN
-        x1 = torch.tensor([self.encode_sentence(s).ids], device=config.DEVICE)
-        x1padmask = x1 == self.token_to_id(self.PAD_TOKEN)
-        return x1, x1padmask[:, None, :]
 
-    def cleanup(self, s):
-        remove = ["Ġ", "ġ", " ##"]
-        for c in remove:
-            s = s.replace(c, "")
-        return s.replace(" .", ".")
 
-    # inference function (translates NL -> EN)
-    def generate(self, s, max_len=None, greedy=True):
-        # s: NL sentence to translate (str)
-        # max_len: override if you want len <T
-        # greedy: use multinomal sampling of vocab or argmax.  recommend argmax for this project.
-        max_len = config.T if max_len is None else max_len
-        eos_token_id = self.token_to_id(self.EOS_TOKEN)
-        x1, x1padmask = self.encoded_input_and_padmask(s)
-        x2 = torch.tensor(
-            [[self.token_to_id(self.BOS_TOKEN)]], device=config.DEVICE
-        )
+    # # helper functions for inference
+    # def encoded_input_and_padmask(self, s):
+    #     s = self.BOS_TOKEN + s + self.EOS_TOKEN
+    #     x1 = torch.tensor([self.encode_sentence(s).ids], device=config.DEVICE)
+    #     x1padmask = x1 == self.token_to_id(self.PAD_TOKEN)
+    #     return x1, x1padmask[:, None, :]
 
-        for _ in range(max_len):
-            # model prediction and probs
-            logits = self.forward(x1, x2, x1padmask)[
-                :, -1, :
-            ]  # only last token (B,t,vl) -> (1,vl)
-            probs = F.softmax(logits, dim=-1)
-            if greedy:
-                id = probs.argmax().expand(1, 1)
-            else:
-                id = torch.multinomial(probs, num_samples=1)
-            x2 = torch.cat([x2, id], dim=-1)  # out_ids.append(out)
-            if id == eos_token_id:
-                break
-        raw_sentence = self.decode_to_sentence(x2[0].detach().tolist())
-        return self.cleanup(raw_sentence)
+    # def cleanup(self, s):
+    #     remove = ["Ġ", "ġ", " ##"]
+    #     for c in remove:
+    #         s = s.replace(c, "")
+    #     return s.replace(" .", ".")
+
+    # # inference function (translates NL -> EN)
+    # def generate(self, s, max_len=None, greedy=True):
+    #     # s: NL sentence to translate (str)
+    #     # max_len: override if you want len <T
+    #     # greedy: use multinomal sampling of vocab or argmax.  recommend argmax for this project.
+    #     max_len = config.T if max_len is None else max_len
+    #     eos_token_id = self.token_to_id(self.EOS_TOKEN)
+    #     x1, x1padmask = self.encoded_input_and_padmask(s)
+    #     x2 = torch.tensor(
+    #         [[self.token_to_id(self.BOS_TOKEN)]], device=config.DEVICE
+    #     )
+
+    #     for _ in range(max_len):
+    #         # model prediction and probs
+    #         logits = self.forward(x1, x2, x1padmask)[
+    #             :, -1, :
+    #         ]  # only last token (B,t,vl) -> (1,vl)
+    #         probs = F.softmax(logits, dim=-1)
+    #         if greedy:
+    #             id = probs.argmax().expand(1, 1)
+    #         else:
+    #             id = torch.multinomial(probs, num_samples=1)
+    #         x2 = torch.cat([x2, id], dim=-1)  # out_ids.append(out)
+    #         if id == eos_token_id:
+    #             break
+    #     raw_sentence = self.decode_to_sentence(x2[0].detach().tolist())
+    #     return self.cleanup(raw_sentence)
